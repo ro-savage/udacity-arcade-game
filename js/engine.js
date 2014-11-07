@@ -104,6 +104,15 @@ var Engine = (function(global) {
      * they are just drawing the entire screen over and over.
      */
     function render() {
+        
+        /*****************DEBUG******************/
+        // **********************************************
+        // * Creates a white background. Temp fix so entire board is redrawn not just squares
+        // **********************************************
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        /*****************DEBUG******************/
+        
         /* This array holds the relative URL to the image used
          * for that particular row of the game level.
          */
@@ -151,7 +160,10 @@ var Engine = (function(global) {
         allEnemies.forEach(function(enemy) {
             enemy.render();
         });
-
+        
+        /*****************DEBUG******************/
+        enemy.render(); // Temp to render one enemy
+        /*****************DEBUG******************/
         player.render();
     }
 
