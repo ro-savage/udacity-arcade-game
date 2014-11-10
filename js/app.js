@@ -41,6 +41,7 @@ var gameTimeCounter = function() {
     ctx.fillText(gameTime +'s', 10, 50);
 }
 
+// Board movement is simply X and Y co-ordnaties based on blocks sizes/configuation.
 var calcYPosition = function(y, yOffset) {
     return y * gameBoard.stats.blockSizeY  - yOffset;
 }
@@ -53,7 +54,6 @@ var checkCollisions = function() {
     
 }
 
-
 // Enemies our player must avoid
 var Enemy = function(enemyNum) {
     // Variables applied to each of our instances go here,
@@ -65,9 +65,10 @@ var Enemy = function(enemyNum) {
     //Config
     this.sprite = 'images/enemy-bug.png'; // Image of enemy
     this.spriteYOffset = 110; // Offset because of image size.
-    // Always start hidden.
-    var startY = -100; 
-    var startX = -100;
+    this.spriteXOffset = 0; // Just in case.
+    
+    this.boardYPos = 0;
+    this.boardXPos = -1;
 
     // Return 50, 140 or 220 at random when called.
     var randomXStartPos = function() {
@@ -76,11 +77,11 @@ var Enemy = function(enemyNum) {
 
         // Random start position: Either Y 50 or 140 or 220
         if (Math.random() < 0.33) {
-            randomX = calcYPosition(2, this.spriteYOffset);
+            randomX = 2;
         } else if ( Math.random() > 0.66) {
-            randomX = calcYPosition(4, this.spriteYOffset);
+            randomX = 4;
         } else {
-            randomX = calcYPosition(3, this.spriteYOffset);
+            randomX = 3;
         }
 
         return randomX
@@ -88,22 +89,18 @@ var Enemy = function(enemyNum) {
     // If only 3 enemies then make one on each line. Else randomly position.
     switch (enemyNum) {
         case 0:
-            startY = calcYPosition(2, this.spriteYOffset);
+            this.boardYPos = 2;
             break;
         case 1:
-            startY = calcYPosition(3, this.spriteYOffset);
+            this.boardYPos = 3;
             break;
         case 2:
-            startY = calcYPosition(4, this.spriteYOffset);
+            this.boardYPos = 4;
             break;
         default:
-            startY = randomXStartPos();
+            this.boardYPos = randomXStartPos();
     }
     
- 
-    // Set position of created enemy
-    this.x = startX;
-    this.y = startY;
     
     this.enterTime = Math.random() * 10 / 2; // Enemies appear randomly within first 5 seconds.
     this.nextMove = this.enterTime + 1;
@@ -119,14 +116,16 @@ Enemy.prototype.update = function(dt) {
     
     if (gameTime > this.nextMove) {
         
-        // 
+        // Time is a random number be 0 and 1 second + the difficulty setting speed.
         var timeToNextMove = this.nextMove + difficulties[difficulty].moveSpeed + Math.random();
-        
         this.nextMove = timeToNextMove;
-        this.x = this.x + 101;
         
-        if ( this.x > 500) {
-            this.x = 0  
+        // Move 1 to the right
+        this.boardXPos = this.boardXPos + 1;
+        
+        // If it moved off the screen set it back to starting point.
+        if (this.boardXPos > 5) {
+            this.boardXPos = 0  
         }
     }
     
@@ -135,7 +134,7 @@ Enemy.prototype.update = function(dt) {
 
 // Draw the enemy on the screen, required method for game
 Enemy.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    ctx.drawImage(Resources.get(this.sprite), calcXPosition(this.boardXPos, this.spriteXOffset), calcYPosition(this.boardYPos, this.spriteYOffset));
 }
 
 // Now write your own player class
