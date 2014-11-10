@@ -41,13 +41,14 @@ var gameTimeCounter = function() {
     ctx.fillText(gameTime +'s', 10, 50);
 }
 
-// Board movement is simply X and Y co-ordnaties based on blocks sizes/configuation.
-var calcYPosition = function(y, yOffset) {
-    return y * gameBoard.stats.blockSizeY  - yOffset;
+// Turns Y grid co-ords into pixels
+var calcYPosition = function(ypos, yOffset) {
+    return ypos * gameBoard.stats.blockSizeY  - yOffset;
 }
 
-var calcXPosition = function(x, xOffset) {
-    return x * gameBoard.stats.blockSizeX  - xOffset;
+// Turns X grid co-ords into pixels
+var calcXPosition = function(xpos, xOffset) {
+    return xpos * gameBoard.stats.blockSizeX  - xOffset;
 }
 
 var checkCollisions = function() {
@@ -65,12 +66,12 @@ var Enemy = function(enemyNum) {
     //Config
     this.sprite = 'images/enemy-bug.png'; // Image of enemy
     this.spriteYOffset = 110; // Offset because of image size.
-    this.spriteXOffset = 0; // Just in case.
+    this.spriteXOffset = 101; // Just in case.
     
     this.boardYPos = 0;
-    this.boardXPos = -1;
+    this.boardXPos = 0;
 
-    // Return 50, 140 or 220 at random when called.
+    // Return a random appropriate grid co-ord for starting.
     var randomXStartPos = function() {
 
         var randomX = calcYPosition(2, this.spriteYOffset); // default
@@ -101,8 +102,10 @@ var Enemy = function(enemyNum) {
             this.boardYPos = randomXStartPos();
     }
     
+    // Makes enimies appear randomly in the first 5seconds of the game
+    this.enterTime = Math.random() * 10 / 2; 
     
-    this.enterTime = Math.random() * 10 / 2; // Enemies appear randomly within first 5 seconds.
+    // Makes the first move exactly 1 second after enemy enters.
     this.nextMove = this.enterTime + 1;
 
 }
@@ -114,6 +117,8 @@ Enemy.prototype.update = function(dt) {
     // which will ensure the game runs at the same speed for
     // all computers.
     
+    // Runs 60 times a second
+    // check if it should make a new move for the enemy.
     if (gameTime > this.nextMove) {
         
         // Time is a random number be 0 and 1 second + the difficulty setting speed.
@@ -123,13 +128,11 @@ Enemy.prototype.update = function(dt) {
         // Move 1 to the right
         this.boardXPos = this.boardXPos + 1;
         
-        // If it moved off the screen set it back to starting point.
+        // If enemy moved off the screen set it back to starting point.
         if (this.boardXPos > 5) {
             this.boardXPos = 0  
         }
-    }
-    
-    
+    }  
 }
 
 // Draw the enemy on the screen, required method for game
@@ -144,12 +147,16 @@ var Player = function() {
 
     this.sprite = 'images/char-boy.png';
     this.spriteYOffset = 110;
-    this.spirteXOffset = 1;
+    this.spriteXOffset = 101;
     
     //Config
-    var startX = 200 //calcXPosition(1, this.spriteXOffset); // Player start X
-    console.log(calcXPosition(1, this.spriteXOffset));
-    var startY = calcYPosition(6, this.spriteYOffset); // Player start Y  
+    this.boardYPos = 1;
+    this.boardXPos = 1;
+    
+    //console.log("boardXPos: " + this.boardXPos + " spriteXOffset: " + this.spriteXOffset + " Player X Pos: " + calcXPosition(this.boardXPos, this.spriteXOffset));
+    
+    var startX = 200; //calcXPosition(1, this.spriteXOffset); // Player start X
+    var startY = 600; // Player start Y  
     this.boardSize = {top: 0, right: 400, bottom: 380, left: 0 }; // Size of tiles only.
     
     this.moveDistX = 101; // Player X move distance. Based on block size
@@ -168,34 +175,26 @@ Player.prototype.update = function(dt) {
 }
 
 Player.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), playerPos.x, playerPos.y);
+    ctx.drawImage(Resources.get(this.sprite), calcXPosition(this.boardXPos, this.spriteXOffset), calcYPosition(this.boardYPos, this.spriteYOffset));
 }
 
 Player.prototype.handleInput = function(keyPress) {
+    // 2nd if statements makes sure you can not run off the board.
     if (keyPress == 'up') {
-        if (playerPos.y <= this.boardSize.top) {
-            // Off screen. Do nothing
-        } else {
-         playerPos.y = playerPos.y - this.moveDistY;   
+        if (this.boardYPos > 1){
+            this.boardYPos = this.boardYPos - 1;
         }
     } else if (keyPress == 'down') {
-        if (playerPos.y >= this.boardSize.bottom) {
-            // Do nothing. Off screen
-        } else {
-            playerPos.y = playerPos.y + this.moveDistY;
+        if (this.boardYPos < gameBoard.settings.heightInBlocks) {
+           this.boardYPos = this.boardYPos + 1; 
         }
     } else if (keyPress == 'left') {
-        if (playerPos.x <= this.boardSize.left) {
-            // Do nothing
-        } else {
-            playerPos.x = playerPos.x - this.moveDistX;
+        if (this.boardXPos > 1) {
+           this.boardXPos = this.boardXPos - 1; 
         }
-        
     } else if (keyPress == 'right') {
-        if (playerPos.x >= this.boardSize.right) {
-            // Do nothing
-        } else {
-            playerPos.x = playerPos.x + this.moveDistX;
+        if (this.boardXPos < gameBoard.settings.widthInBlocks) {
+           this.boardXPos = this.boardXPos + 1; 
         }
     }
 }
@@ -206,6 +205,7 @@ Player.prototype.handleInput = function(keyPress) {
 
 var allEnemies = [];
 
+// Add enemies. Amount added based on difficulty
 for (var i = 0; i < difficulties[difficulty].enemies; i++ ) {
     console.log("EnemyLoop");
     var newEnemy = new Enemy(i);

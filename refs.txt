@@ -1,0 +1,12 @@
+--- Time stuff ---
+https://stackoverflow.com/questions/10659523/how-to-get-the-exact-local-time-of-client
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
+https://stackoverflow.com/questions/11832914/round-to-at-most-2-decimal-places-in-javascript
+
+--- Loops ---
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
+
+
+--- Random ---
+https://stackoverflow.com/questions/7102704/how-to-use-variables-in-dot-notation-like-square-bracket-notation
