@@ -7,6 +7,9 @@ https://stackoverflow.com/questions/11832914/round-to-at-most-2-decimal-places-i
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
 
+--- Objects ---
+https://stackoverflow.com/questions/6503193/nested-json-how-to-add-push-new-items-to-an-object
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in
 
 --- Random ---
 https://stackoverflow.com/questions/7102704/how-to-use-variables-in-dot-notation-like-square-bracket-notation

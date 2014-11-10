@@ -4,6 +4,11 @@ var startTime = Math.floor(Date.now() / 10) / 60;
 var gameTime = 0;
 var difficulty = 'easy';
 
+var currentPos = {
+    "x" : 0,
+    "y" : 0
+}
+
 var gameBoard = {
     "settings" : {
         "widthInBlocks" : 5,
@@ -30,6 +35,15 @@ var difficulties = {
     }
 }
 
+// Records position of all non-moving objects
+var objectPos = {};
+
+// Records position of all enemies
+var enemiesPos = {};
+
+// Records position of all players
+var playersPos = {};
+
 // Keeps try go game time
 var gameTimeCounter = function() {
     // Game time is tracked in ss.msms
@@ -51,9 +65,35 @@ var calcXPosition = function(xpos, xOffset) {
     return xpos * gameBoard.stats.blockSizeX  - xOffset;
 }
 
-var checkCollisions = function() {
-    
+// Updates enemiesPos object
+var updateEnemyPos = function(name, xpos, ypos) {
+    enemiesPos[name].x = xpos;
+    enemiesPos[name].y = ypos
+    enemiesPos[name].xy = xpos + '' + ypos;
 }
+
+// Update player position
+var updatePlayerPos = function(name, xpos, ypos) {
+    playersPos[name].x = xpos;
+    playersPos[name].y = ypos
+    playersPos[name].xy = xpos + '' + ypos;
+}
+
+var death =  function() {
+    console.log("You are dead. The game has reset.");
+}
+
+var checkCollisions = function() {
+    // Check for enemy collision
+    for (var enemy in enemiesPos) {
+        for (var player in playersPos) {
+            if (enemiesPos[enemy].xy == playersPos[player].xy) {
+                death();
+            }
+        }
+    } 
+}
+
 
 // Enemies our player must avoid
 var Enemy = function(enemyNum) {
@@ -71,12 +111,21 @@ var Enemy = function(enemyNum) {
     this.boardYPos = 0;
     this.boardXPos = 0;
 
+    this.enemyName = "enemy" + enemyNum;
+
+    // Create enemy position objects
+    enemiesPos[this.enemyName] = {
+            "x" : this.boardXPos,
+            "y" : this.boardYPos,
+            "xy" : this.boardXPos + '' + this.boardYPos
+        }
+
     // Return a random appropriate grid co-ord for starting.
     var randomXStartPos = function() {
 
         var randomX = calcYPosition(2, this.spriteYOffset); // default
 
-        // Random start position: Either Y 50 or 140 or 220
+        // Random start position
         if (Math.random() < 0.33) {
             randomX = 2;
         } else if ( Math.random() > 0.66) {
@@ -89,25 +138,24 @@ var Enemy = function(enemyNum) {
 }
     // If only 3 enemies then make one on each line. Else randomly position.
     switch (enemyNum) {
-        case 0:
+        case 1:
             this.boardYPos = 2;
             break;
-        case 1:
+        case 2:
             this.boardYPos = 3;
             break;
-        case 2:
+        case 3:
             this.boardYPos = 4;
             break;
         default:
             this.boardYPos = randomXStartPos();
     }
     
-    // Makes enimies appear randomly in the first 5seconds of the game
-    this.enterTime = Math.random() * 10 / 2; 
+    // Makes enimies appear randomly in the first 6seconds of the game
+    this.enterTime = Math.random() * 10 - 4; 
     
     // Makes the first move exactly 1 second after enemy enters.
     this.nextMove = this.enterTime + 1;
-
 }
 
 // Update the enemy's position, required method for game
@@ -132,7 +180,10 @@ Enemy.prototype.update = function(dt) {
         if (this.boardXPos > 5) {
             this.boardXPos = 0  
         }
-    }  
+
+        // Update enemy location after moving.
+        updateEnemyPos(this.enemyName, this.boardXPos, this.boardYPos);  
+    }
 }
 
 // Draw the enemy on the screen, required method for game
@@ -149,29 +200,27 @@ var Player = function() {
     this.spriteYOffset = 110;
     this.spriteXOffset = 101;
     
-    //Config
-    this.boardYPos = 1;
-    this.boardXPos = 1;
-    
-    //console.log("boardXPos: " + this.boardXPos + " spriteXOffset: " + this.spriteXOffset + " Player X Pos: " + calcXPosition(this.boardXPos, this.spriteXOffset));
-    
-    var startX = 200; //calcXPosition(1, this.spriteXOffset); // Player start X
-    var startY = 600; // Player start Y  
-    this.boardSize = {top: 0, right: 400, bottom: 380, left: 0 }; // Size of tiles only.
-    
-    this.moveDistX = 101; // Player X move distance. Based on block size
-    this.moveDistY = 83; // Player Y move distance. Based on block size
-    
-    // Put player in starting position
-    playerPos.x = startX;
-    playerPos.y = startY;
+    // Start position of player
+    this.boardYPos = 6;
+    this.boardXPos = 3;
 
+    this.playerName = 'player1';
+
+    // Create player location object
+    playersPos[this.playerName] = {
+            "x" : this.boardXPos,
+            "y" : this.boardYPos,
+            "xy" : this.boardXPos + '' + this.boardYPos
+        }
 }
 
 Player.prototype.update = function(dt) {
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
     // all computers.
+
+    // Update player position
+    updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos);
 }
 
 Player.prototype.render = function() {
@@ -206,8 +255,7 @@ Player.prototype.handleInput = function(keyPress) {
 var allEnemies = [];
 
 // Add enemies. Amount added based on difficulty
-for (var i = 0; i < difficulties[difficulty].enemies; i++ ) {
-    console.log("EnemyLoop");
+for (var i = 1; i <= difficulties[difficulty].enemies; i++ ) {
     var newEnemy = new Enemy(i);
     
     allEnemies.push(newEnemy);
