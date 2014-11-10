@@ -42,11 +42,12 @@ var Engine = (function(global) {
         var now = Date.now(),
             dt = (now - lastTime) / 1000.0;
 
-        /* Call our update/render functions, pass along the time delta to
+        /* Call our update/render/timer functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
         update(dt);
         render();
+        gameTimeCounter();
 
         /* Set our lastTime variable which is used to determine the time delta
          * for the next time this function is called.
@@ -95,6 +96,7 @@ var Engine = (function(global) {
             enemy.update(dt);
         });
         player.update();
+        //enemy.update(dt);
     }
 
     /* This function initially draws the "game level", it will then call
@@ -104,14 +106,6 @@ var Engine = (function(global) {
      * they are just drawing the entire screen over and over.
      */
     function render() {
-        
-        /*****************DEBUG******************/
-        // **********************************************
-        // * Creates a white background. Temp fix so entire board is redrawn not just squares
-        // **********************************************
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        /*****************DEBUG******************/
         
         /* This array holds the relative URL to the image used
          * for that particular row of the game level.
@@ -162,7 +156,7 @@ var Engine = (function(global) {
         });
         
         /*****************DEBUG******************/
-        enemy.render(); // Temp to render one enemy
+        //enemy.render(); // Temp to render one enemy
         /*****************DEBUG******************/
         player.render();
     }
