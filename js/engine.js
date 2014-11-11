@@ -27,6 +27,7 @@ var Engine = (function(global) {
 
     canvas.width = 505;
     canvas.height = 700;
+    canvas.id = 'canvas';
     doc.body.appendChild(canvas);
 
     /* This function serves as the kickoff point for the game loop itself
@@ -105,7 +106,7 @@ var Engine = (function(global) {
             enemy.update(dt);
         });
         player1.update();
-        if (players == 2) {player2.update();}
+        if (userConfig.players == 2) {player2.update();}
     }
 
     /* This function initially draws the "game level", it will then call
@@ -173,7 +174,11 @@ var Engine = (function(global) {
         });
 
         player1.render();
-        if (players == 2) {player2.render();}
+        if (userConfig.players == 2) {player2.render();}
+
+        if (gameOverFlag == true) {
+            gui.gameOverDisplay();
+        }
     }
 
     /* This function does nothing but it could have been a good place to
@@ -206,4 +211,5 @@ var Engine = (function(global) {
      * from within their app.js files.
      */
     global.ctx = ctx;
+    //global.canvas = canvas; // didn't work??
 })(this);

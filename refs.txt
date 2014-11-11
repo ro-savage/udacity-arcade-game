@@ -15,3 +15,9 @@ https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 
 --- Random ---
 https://stackoverflow.com/questions/7102704/how-to-use-variables-in-dot-notation-like-square-bracket-notation
+http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
+
+--- Canvas ---
+http://www.html5tutorial.info/html5-canvas-text.php
+https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_text
+https://stackoverflow.com/questions/2359537/how-to-change-the-opacity-alpha-transparency-of-an-element-in-a-canvas-elemen
