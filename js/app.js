@@ -5,7 +5,8 @@ var gameTime = 0;
 var level = 1;
 var difficulty = 'hard';
 var numOfEnemies = 0;
-var lastGemCreatedTime = 0;
+var nextGemCreateTime = 0;
+var score = 0;
 
 var currentPos = {
     "x" : 0,
@@ -28,19 +29,19 @@ var difficulties = {
         "moveSpeed" : 1,
         "enemies" : 8,
         "enemyMultipler": 1,
-        "levelSpeed": 30
+        "levelSpeed": 20
     },
     "medium" : {
         "moveSpeed" : 0.25,
         "enemies" : 16,
         "enemyMultipler": 1,
-        "levelSpeed": 20
+        "levelSpeed": 15
     },
     "hard" : {
         "moveSpeed" : 1,
         "enemies" : 24,
         "enemyMultipler": 1,
-        "levelSpeed": 15
+        "levelSpeed": 10
     }
 }
 
@@ -53,21 +54,26 @@ var enemiesPos = {};
 // Records position of all players
 var playersPos = {};
 
-// Keeps try go game time
-var gameTimeCounter = function() {
-    // Game time is tracked in ss.msms
-    gameTime = (Math.floor(Date.now() / 10) / 60 - startTime).toFixed(2);
-    
-    // Show game timer
-    ctx.clearRect(0, 0, 150, 30); // clears after each refresh
+var scoreCounter = function() {
+    ctx.clearRect(0, 586, 200, 30); // clears after each refresh
     ctx.font = "30px Verdana";
-    ctx.fillText(gameTime +'s', 10, 30);
+    ctx.fillText('Score:' + score, 0, 610);
 }
 
 var levelCounter = function() {
-    ctx.clearRect(200, 0, 150, 30); // clears after each refresh
+    ctx.clearRect(0, 0, 200, 30); // clears after each refresh
     ctx.font = "30px Verdana";
-    ctx.fillText('level: ' + level, 200, 30);
+    ctx.fillText('Level: ' + level, 0, 30);
+}
+
+var gameTimeCounter = function() {
+    // Game time is tracked in ss.msms
+    gameTime = Math.floor(Date.now() / 10 / 60 - startTime);
+    
+    // Show game timer
+    ctx.clearRect(350, 0, 200, 30); // clears after each refresh
+    ctx.font = "30px Verdana";
+    ctx.fillText('Time: ' + gameTime +'s', 350, 30);
 }
 
 // Turns Y grid co-ords into pixels
@@ -106,17 +112,14 @@ var reset =  function(playerNum) {
     // while delay is occuring.
     updatePlayerPos(playerNum, 3, 6);
 
+    score = score - 1000;
+
     // Delay visual / actual movement
     window.setTimeout(function() {
         // Reset position
         player.boardXPos = 3;
         player.boardYPos = 6;
     }, 200);  
-}
-
-var collectGem = function(playerNum) {
-    gem.boardXpos = -1;
-    gem.boardYPos = -1;
 }
 
 var checkCollisions = function() {
@@ -131,17 +134,17 @@ var checkCollisions = function() {
             }
         }
     }
-
+/*
     for (var player in playersPos) { // check for all players
         if (playersPos['player1'].y != 1 || playersPos['player1'].y != 6) { //  If isn't on road. Dont check
             for (var gem in gemsPos) { // check for enemies
                 if (gemsPos[gem].x == playersPos[player].x && gemsPos[gem].y == playersPos[player].y) { // do they have the same xy position
-                    collectGem(player);
+                    Gem.prototype.collectGem();
                 }
             }
         }
     }
-
+*/
 }
 
 
@@ -171,12 +174,25 @@ var Gem = function(gemNum){
         "y" : this.boardYPos,
         "xy" : this.boardXPos + '' + this.boardYPos
     }
-
-    lastGemCreatedTime = Math.floor(gameTime);
 }
 
 Gem.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), calcXPosition(this.boardXPos, this.spriteXOffset), calcYPosition(this.boardYPos, this.spriteYOffset));
+}
+
+Gem.prototype.collectGem = function(playerNum) {
+    console.log('ran over gem');
+    this.boardXpos = -1;
+    this.boardYPos = -1;
+}
+
+Gem.prototype.collisionDetection = function() {
+    if (playersPos['player1'].x == this.boardXPos && playersPos['player1'].y == this.boardYPos) {
+        console.log("Gem Collected");
+        this.boardXPos = -1;
+        this.boardYPos = -1;
+        score = score + 100 * level;
+    }
 }
 
 // Enemies our player must avoid
@@ -200,7 +216,7 @@ var Enemy = function(enemyNum) {
     this.y = -100;
 
     // Create random start time between 0 and 20 seconds
-    this.startTime = (Math.random() * 10) - 2 ; // Make enemies appear within 8 seconds of being created. -2 to make bias toward fast.
+    this.startTime = (Math.random() * 10) - 2; // Make enemies appear within 8 seconds of being created. -2 to make bias toward fast.
     //this.startTime = 1;
     // Make random movespeed
     this.moveSpeed = (Math.random() * 10) / 3 + 1; // +1 to avoid super slow enemies.
@@ -290,7 +306,6 @@ Player.prototype.update = function(dt) {
     // all computers.
 
     // Update player position
-    updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos);
 }
 
 Player.prototype.render = function() {
@@ -302,18 +317,22 @@ Player.prototype.handleInput = function(keyPress) {
     if (keyPress == 'up') {
         if (this.boardYPos > 1){
             this.boardYPos = this.boardYPos - 1;
+            updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos);
         }
     } else if (keyPress == 'down') {
         if (this.boardYPos < gameBoard.settings.heightInBlocks) {
            this.boardYPos = this.boardYPos + 1; 
+           updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos);
         }
     } else if (keyPress == 'left') {
         if (this.boardXPos > 1) {
-           this.boardXPos = this.boardXPos - 1; 
+           this.boardXPos = this.boardXPos - 1;
+           updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos); 
         }
     } else if (keyPress == 'right') {
         if (this.boardXPos < gameBoard.settings.widthInBlocks) {
-           this.boardXPos = this.boardXPos + 1; 
+           this.boardXPos = this.boardXPos + 1;
+           updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos); 
         }
     }
 }
@@ -346,7 +365,7 @@ function levelTimer() {
 
 //************ LEVEL TIMER TURNED OFF**********************///
 //************ LEVEL TIMER TURNED OFF**********************///
-//levelTimer();
+levelTimer();
 //************ LEVEL TIMER TURNED OFF**********************///
 //************ LEVEL TIMER TURNED OFF**********************///
 
@@ -358,7 +377,17 @@ for (var i = 1; i <= 3; i++ ) {
 
 var player = new Player();
 
-var gem = new Gem(1);
+var allGems = [];
+
+var createGems = function() {
+    if (Math.floor(gameTime) > nextGemCreateTime ) {
+        var numberOfGems = allGems.length
+        var gem = new Gem(numberOfGems+1);
+        allGems.push(gem);
+        nextGemCreateTime =  Math.floor(gameTime) + Math.round((Math.random() * 10) / 2); 
+    }
+}
+
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.

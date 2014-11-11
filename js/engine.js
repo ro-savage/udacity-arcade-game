@@ -26,7 +26,7 @@ var Engine = (function(global) {
         lastTime;
 
     canvas.width = 505;
-    canvas.height = 606;
+    canvas.height = 656;
     doc.body.appendChild(canvas);
 
     /* This function serves as the kickoff point for the game loop itself
@@ -49,6 +49,7 @@ var Engine = (function(global) {
         render();
         gameTimeCounter();
         levelCounter();
+        scoreCounter();
 
         /* Set our lastTime variable which is used to determine the time delta
          * for the next time this function is called.
@@ -82,6 +83,7 @@ var Engine = (function(global) {
      */
     function update(dt) {
         updateEntities(dt);
+        createGems();
         checkCollisions();
     }
 
@@ -93,6 +95,11 @@ var Engine = (function(global) {
      * render methods.
      */
     function updateEntities(dt) {
+
+        allGems.forEach(function(gem) {
+            gem.collisionDetection();
+        });
+
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
         });
@@ -155,11 +162,14 @@ var Engine = (function(global) {
          * the render function you have defined.
          */
 
-        gem.render();
+        allGems.forEach(function(gem) {
+            gem.render();
+        });
 
         allEnemies.forEach(function(enemy) {
             enemy.render();
         });
+
         player.render();
     }
 
