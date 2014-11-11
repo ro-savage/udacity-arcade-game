@@ -26,7 +26,7 @@ var Engine = (function(global) {
         lastTime;
 
     canvas.width = 505;
-    canvas.height = 656;
+    canvas.height = 700;
     doc.body.appendChild(canvas);
 
     /* This function serves as the kickoff point for the game loop itself
@@ -46,10 +46,12 @@ var Engine = (function(global) {
          * our update function since it may be used for smooth animation.
          */
         update(dt);
-        render();
+        render()
         gameTimeCounter();
-        levelCounter();
-        scoreCounter();
+        gui.timeDisplay();
+        gui.levelDisplay();
+        gui.playerInfoDisplay();
+
 
         /* Set our lastTime variable which is used to determine the time delta
          * for the next time this function is called.
@@ -84,7 +86,6 @@ var Engine = (function(global) {
     function update(dt) {
         updateEntities(dt);
         createGems();
-        checkCollisions();
     }
 
     /* This is called by the update function  and loops through all of the
@@ -103,7 +104,8 @@ var Engine = (function(global) {
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
         });
-        player.update();
+        player1.update();
+        if (players == 2) {player2.update();}
     }
 
     /* This function initially draws the "game level", it will then call
@@ -170,7 +172,8 @@ var Engine = (function(global) {
             enemy.render();
         });
 
-        player.render();
+        player1.render();
+        if (players == 2) {player2.render();}
     }
 
     /* This function does nothing but it could have been a good place to
@@ -191,6 +194,7 @@ var Engine = (function(global) {
         'images/grass-block.png',
         'images/enemy-bug.png',
         'images/char-boy.png',
+        'images/char-horn-girl.png',
         'images/gem-blue.png',
         'images/gem-orange.png',
         'images/gem-green.png'

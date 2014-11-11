@@ -3,15 +3,10 @@ var playerPos = {x: 0, y: 0};
 var startTime = Math.floor(Date.now() / 10) / 60;
 var gameTime = 0;
 var level = 1;
-var difficulty = 'hard';
+var players = 2;
+var difficulty = 'easy';
 var numOfEnemies = 0;
 var nextGemCreateTime = 0;
-var score = 0;
-
-var currentPos = {
-    "x" : 0,
-    "y" : 0
-}
 
 var gameBoard = {
     "settings" : {
@@ -54,26 +49,47 @@ var enemiesPos = {};
 // Records position of all players
 var playersPos = {};
 
-var scoreCounter = function() {
-    ctx.clearRect(0, 586, 200, 30); // clears after each refresh
+// Used for displaying GUI objects.
+var gui = {}; 
+
+gui.playerInfoDisplay = function() {
+
+    ctx.clearRect(300, 586, 200, 90); // clears after each refresh
     ctx.font = "30px Verdana";
-    ctx.fillText('Score:' + score, 0, 610);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'red';
+    ctx.fillText('Player 1', 500, 610);
+    ctx.fillStyle = 'black';
+    ctx.fillText('Lives:' + player1.lives, 500, 640);
+    ctx.fillText('Score:' + player1.score, 500, 670);
+    ctx.textAlign = 'left';
+    
+    if (players == 2) {
+        ctx.clearRect(0, 586, 200, 90); // clears after each refresh
+        ctx.fillStyle = 'red';
+        ctx.fillText('Player 2', 0, 610);
+        ctx.fillStyle = 'black';
+        ctx.fillText('Lives:' + player2.lives, 0, 640);
+        ctx.fillText('Score:' + player2.score, 0, 670);
+    }
 }
 
-var levelCounter = function() {
+gui.levelDisplay = function() {
     ctx.clearRect(0, 0, 200, 30); // clears after each refresh
     ctx.font = "30px Verdana";
     ctx.fillText('Level: ' + level, 0, 30);
 }
 
-var gameTimeCounter = function() {
-    // Game time is tracked in ss.msms
-    gameTime = Math.floor(Date.now() / 10 / 60 - startTime);
-    
+gui.timeDisplay = function() {
     // Show game timer
     ctx.clearRect(350, 0, 200, 30); // clears after each refresh
     ctx.font = "30px Verdana";
     ctx.fillText('Time: ' + gameTime +'s', 350, 30);
+}
+
+var gameTimeCounter = function() {
+    // Game time is tracked in ss.msms
+    gameTime = Math.floor(Date.now() / 10 / 60 - startTime);
 }
 
 // Turns Y grid co-ords into pixels
@@ -104,49 +120,6 @@ var updatePlayerPos = function(name, xpos, ypos) {
     playersPos[name].y = ypos
     playersPos[name].xy = xpos + '' + ypos;
 }
-
-var reset =  function(playerNum) {
-    console.log("You are dead. The game has reset.");
-    
-    // Update location in object model so reset event doesn't fire over and over
-    // while delay is occuring.
-    updatePlayerPos(playerNum, 3, 6);
-
-    score = score - 1000;
-
-    // Delay visual / actual movement
-    window.setTimeout(function() {
-        // Reset position
-        player.boardXPos = 3;
-        player.boardYPos = 6;
-    }, 200);  
-}
-
-var checkCollisions = function() {
-    
-    // Check for enemy collision
-    for (var player in playersPos) { // check for all players
-        if (playersPos['player1'].y != 1 || playersPos['player1'].y != 6) { //  If isn't on road. Dont check
-            for (var enemy in enemiesPos) { // check for enemies
-                if (enemiesPos[enemy].x == playersPos[player].x && enemiesPos[enemy].y == playersPos[player].y) { // do they have the same xy position
-                    reset(player);
-                }
-            }
-        }
-    }
-/*
-    for (var player in playersPos) { // check for all players
-        if (playersPos['player1'].y != 1 || playersPos['player1'].y != 6) { //  If isn't on road. Dont check
-            for (var gem in gemsPos) { // check for enemies
-                if (gemsPos[gem].x == playersPos[player].x && gemsPos[gem].y == playersPos[player].y) { // do they have the same xy position
-                    Gem.prototype.collectGem();
-                }
-            }
-        }
-    }
-*/
-}
-
 
 var Gem = function(gemNum){
     //Config
@@ -187,11 +160,18 @@ Gem.prototype.collectGem = function(playerNum) {
 }
 
 Gem.prototype.collisionDetection = function() {
-    if (playersPos['player1'].x == this.boardXPos && playersPos['player1'].y == this.boardYPos) {
-        console.log("Gem Collected");
+    if (player1.boardXPos == this.boardXPos && player1.boardYPos == this.boardYPos) {
         this.boardXPos = -1;
         this.boardYPos = -1;
-        score = score + 100 * level;
+        player1.score = player1.score + 100;
+    }
+
+    if (players == 2) {
+        if (player2.boardXPos == this.boardXPos && player2.boardYPos == this.boardYPos) {
+            this.boardXPos = -1;
+            this.boardYPos = -1;
+            player2.score = player2.score + 100;
+        }
     }
 }
 
@@ -264,6 +244,7 @@ Enemy.prototype.update = function(dt) {
             // Check for collision
             this.boardXPos = calcXPosPixelsToGrid(this.x, this.spriteXOffset);
             updateEnemyPos(this.enemyName, this.boardXPos, this.boardYPos); 
+            this.checkCollision();
         } else if (this.x > 500) {
             this.boardXPos = 0; // Reset board position
             updateEnemyPos(this.enemyName, this.boardXPos, this.boardYPos); 
@@ -271,6 +252,20 @@ Enemy.prototype.update = function(dt) {
         }
     }
 }
+Enemy.prototype.checkCollision = function() {
+    if (this.boardYPos == player1.boardYPos) { // Check one at a time. Efficiency? 
+        if (this.boardXPos == player1.boardXPos) {
+            player1.death();
+        }
+    } 
+
+    if (players == 2) {
+        if (this.boardXPos == player2.boardXPos && this.boardYPos == player2.boardYPos) {
+            player2.death(); // Doesn't check one at a time. How can I check efficiency?
+        }
+    }
+}
+
 
 // Draw the enemy on the screen, required method for game
 Enemy.prototype.render = function() {
@@ -280,17 +275,36 @@ Enemy.prototype.render = function() {
 // Now write your own player class
 // This class requires an update(), render() and
 // a handleInput() method.
-var Player = function() {
+var Player = function(playerNum) {
 
-    this.sprite = 'images/char-boy.png';
     this.spriteYOffset = 110;
     this.spriteXOffset = 101;
-    
-    // Start position of player
-    this.boardYPos = 6;
-    this.boardXPos = 3;
 
-    this.playerName = 'player1';
+    if (playerNum == 1) {
+        this.sprite = 'images/char-boy.png';
+
+        this.startXPos = 3;
+        this.startYPos = 6;
+
+        this.playerName = 'player1';
+    }
+    if (playerNum == 2) {
+        this.sprite = 'images/char-horn-girl.png';
+        this.playerName = 'player2';
+
+        this.startXPos = 3;
+        this.startYPos = 1;
+    }
+
+    // Place in initial postion
+    this.boardXPos = this.startXPos;
+    this.boardYPos = this.startYPos;
+    
+    // Set up score, lives and deaths
+    this.score = 0;
+    this.lives = 5;
+    this.deaths = 0;
+    this.alive = true;
 
     // Create player location object
     playersPos[this.playerName] = {
@@ -308,28 +322,53 @@ Player.prototype.update = function(dt) {
     // Update player position
 }
 
+Player.prototype.death = function() { 
+
+        if (this.alive == true){
+            this.score = this.score - 500;
+            this.lives = this.lives - 1;
+        }
+        
+        this.alive = false; // Kill player because function will fire a lot before movement occurs
+
+        updatePlayerPos(this.playerName, this.startXPos, this.startXPos);
+        
+        var player = this; // To pass through to timeout function
+        
+        window.setTimeout(function() {
+            // Reset position
+            player.boardXPos = player.startXPos;
+            player.boardYPos = player.startYPos;
+            player.alive = true;
+        }, 100); 
+
+        
+
+}
+
 Player.prototype.render = function() {
+    // Renders the player
     ctx.drawImage(Resources.get(this.sprite), calcXPosition(this.boardXPos, this.spriteXOffset), calcYPosition(this.boardYPos, this.spriteYOffset));
 }
 
 Player.prototype.handleInput = function(keyPress) {
     // 2nd if statements makes sure you can not run off the board.
-    if (keyPress == 'up') {
+    if (keyPress == 'up' || keyPress == 'w') {
         if (this.boardYPos > 1){
             this.boardYPos = this.boardYPos - 1;
             updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos);
         }
-    } else if (keyPress == 'down') {
+    } else if (keyPress == 'down' || keyPress == 's') {
         if (this.boardYPos < gameBoard.settings.heightInBlocks) {
            this.boardYPos = this.boardYPos + 1; 
            updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos);
         }
-    } else if (keyPress == 'left') {
+    } else if (keyPress == 'left' || keyPress == 'a') {
         if (this.boardXPos > 1) {
            this.boardXPos = this.boardXPos - 1;
            updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos); 
         }
-    } else if (keyPress == 'right') {
+    } else if (keyPress == 'right' || keyPress == 'd') {
         if (this.boardXPos < gameBoard.settings.widthInBlocks) {
            this.boardXPos = this.boardXPos + 1;
            updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos); 
@@ -345,7 +384,6 @@ var allEnemies = [];
 
 // Add enemies. Amount added based on difficulty
 var createEnemies = function() {
-    console.log("createEnemies fired");
     level = level + 1;
     // Generates less and less enemies as the level goes up
     // (1/level = 0.1->1) * (random*10/2 = 0->5) * (enemyMultiplier = 1 -> 1.5) + 1.
@@ -365,7 +403,7 @@ function levelTimer() {
 
 //************ LEVEL TIMER TURNED OFF**********************///
 //************ LEVEL TIMER TURNED OFF**********************///
-levelTimer();
+//levelTimer();
 //************ LEVEL TIMER TURNED OFF**********************///
 //************ LEVEL TIMER TURNED OFF**********************///
 
@@ -375,7 +413,8 @@ for (var i = 1; i <= 3; i++ ) {
     allEnemies.push(newEnemy);
 }
 
-var player = new Player();
+var player1 = new Player(1);
+if (players == 2) {var player2 = new Player(2);}
 
 var allGems = [];
 
@@ -392,12 +431,23 @@ var createGems = function() {
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
 document.addEventListener('keyup', function(e) {
-    var allowedKeys = {
+    var player1Keys = {
         37: 'left',
         38: 'up',
         39: 'right',
         40: 'down'
     };
 
-    player.handleInput(allowedKeys[e.keyCode]);
+    player1.handleInput(player1Keys[e.keyCode]);
+
+    if (players == 2) {
+        var player2Keys = {
+            65: 'a',
+            87: 'w',
+            68: 'd',
+            83: 's'
+        };
+
+        player2.handleInput(player2Keys[e.keyCode]);
+    }  
 });
