@@ -155,7 +155,7 @@ var Engine = (function(global) {
          * the render function you have defined.
          */
 
-        //gem.render();
+        gem.render();
 
         allEnemies.forEach(function(enemy) {
             enemy.render();

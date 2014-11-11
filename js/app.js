@@ -5,6 +5,7 @@ var gameTime = 0;
 var level = 1;
 var difficulty = 'hard';
 var numOfEnemies = 0;
+var lastGemCreatedTime = 0;
 
 var currentPos = {
     "x" : 0,
@@ -44,7 +45,7 @@ var difficulties = {
 }
 
 // Records position of all non-moving objects
-var objectPos = {};
+var gemsPos = {};
 
 // Records position of all enemies
 var enemiesPos = {};
@@ -110,12 +111,16 @@ var reset =  function(playerNum) {
         // Reset position
         player.boardXPos = 3;
         player.boardYPos = 6;
-    }, 200);
-    
-    
+    }, 200);  
+}
+
+var collectGem = function(playerNum) {
+    gem.boardXpos = -1;
+    gem.boardYPos = -1;
 }
 
 var checkCollisions = function() {
+    
     // Check for enemy collision
     for (var player in playersPos) { // check for all players
         if (playersPos['player1'].y != 1 || playersPos['player1'].y != 6) { //  If isn't on road. Dont check
@@ -127,10 +132,52 @@ var checkCollisions = function() {
         }
     }
 
+    for (var player in playersPos) { // check for all players
+        if (playersPos['player1'].y != 1 || playersPos['player1'].y != 6) { //  If isn't on road. Dont check
+            for (var gem in gemsPos) { // check for enemies
+                if (gemsPos[gem].x == playersPos[player].x && gemsPos[gem].y == playersPos[player].y) { // do they have the same xy position
+                    collectGem(player);
+                }
+            }
+        }
+    }
+
 }
 
 
+var Gem = function(gemNum){
+    //Config
+    this.spriteYOffset = 110; // Offset because of image size.
+    this.spriteXOffset = 101; // Just in case.
 
+    this.gemName = "gem" + gemNum;
+    
+    this.sprite = 'images/gem-blue.png'; // Default. randomGem == 0
+
+    var randomGem = Math.floor(Math.random() * 10 / 4);
+
+    if (randomGem == 1) {
+        this.sprite = 'images/gem-green.png'; 
+    }  else if (randomGem == 2) {
+        this.sprite = 'images/gem-orange.png';
+    }
+
+    // Position
+    this.boardYPos = Math.floor((Math.random() * 10) / 3 ) + 2 // Generate number between 2 and 5
+    this.boardXPos = Math.floor((Math.random() * 10) / 2 ) + 1 // Generate number between 1 and 5
+
+    gemsPos[this.gemName] = {
+        "x" : this.boardXPos,
+        "y" : this.boardYPos,
+        "xy" : this.boardXPos + '' + this.boardYPos
+    }
+
+    lastGemCreatedTime = Math.floor(gameTime);
+}
+
+Gem.prototype.render = function() {
+    ctx.drawImage(Resources.get(this.sprite), calcXPosition(this.boardXPos, this.spriteXOffset), calcYPosition(this.boardYPos, this.spriteYOffset));
+}
 
 // Enemies our player must avoid
 var Enemy = function(enemyNum) {
@@ -307,11 +354,11 @@ for (var i = 1; i <= 3; i++ ) {
     var newEnemy = new Enemy(i);
     numOfEnemies = numOfEnemies + 1;
     allEnemies.push(newEnemy);
-    
 }
 
 var player = new Player();
-var gem = new Gem();
+
+var gem = new Gem(1);
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
