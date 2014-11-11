@@ -2,7 +2,9 @@
 var playerPos = {x: 0, y: 0};
 var startTime = Math.floor(Date.now() / 10) / 60;
 var gameTime = 0;
-var difficulty = 'easy';
+var level = 1;
+var difficulty = 'hard';
+var numOfEnemies = 0;
 
 var currentPos = {
     "x" : 0,
@@ -23,15 +25,21 @@ var gameBoard = {
 var difficulties = {
     "easy" : {
         "moveSpeed" : 1,
-        "enemies" : 8
+        "enemies" : 8,
+        "enemyMultipler": 1,
+        "levelSpeed": 30
     },
     "medium" : {
         "moveSpeed" : 0.25,
-        "enemies" : 16
+        "enemies" : 16,
+        "enemyMultipler": 1,
+        "levelSpeed": 20
     },
     "hard" : {
         "moveSpeed" : 1,
-        "enemies" : 24
+        "enemies" : 24,
+        "enemyMultipler": 1,
+        "levelSpeed": 15
     }
 }
 
@@ -50,9 +58,15 @@ var gameTimeCounter = function() {
     gameTime = (Math.floor(Date.now() / 10) / 60 - startTime).toFixed(2);
     
     // Show game timer
-    ctx.clearRect(0, 0, 600, 50); // clears after each refresh
+    ctx.clearRect(0, 0, 150, 30); // clears after each refresh
     ctx.font = "30px Verdana";
-    ctx.fillText(gameTime +'s', 10, 50);
+    ctx.fillText(gameTime +'s', 10, 30);
+}
+
+var levelCounter = function() {
+    ctx.clearRect(200, 0, 150, 30); // clears after each refresh
+    ctx.font = "30px Verdana";
+    ctx.fillText('level: ' + level, 200, 30);
 }
 
 // Turns Y grid co-ords into pixels
@@ -104,7 +118,7 @@ var reset =  function(playerNum) {
 var checkCollisions = function() {
     // Check for enemy collision
     for (var player in playersPos) { // check for all players
-        if (playersPos['player1'].y < 5) { //  If isn't on road. Dont check
+        if (playersPos['player1'].y != 1 || playersPos['player1'].y != 6) { //  If isn't on road. Dont check
             for (var enemy in enemiesPos) { // check for enemies
                 if (enemiesPos[enemy].x == playersPos[player].x && enemiesPos[enemy].y == playersPos[player].y) { // do they have the same xy position
                     reset(player);
@@ -114,6 +128,8 @@ var checkCollisions = function() {
     }
 
 }
+
+
 
 
 // Enemies our player must avoid
@@ -137,10 +153,10 @@ var Enemy = function(enemyNum) {
     this.y = -100;
 
     // Create random start time between 0 and 20 seconds
-    this.startTime = (Math.random() * 100) / 4 - 5; // calcs 0 to 25 then minus 5. This makes bias toward starting early.
+    this.startTime = (Math.random() * 10) - 2 ; // Make enemies appear within 8 seconds of being created. -2 to make bias toward fast.
     //this.startTime = 1;
     // Make random movespeed
-    this.moveSpeed = (Math.random() * 10) / 2 + 1; // +1 to avoid super slow enemies.
+    this.moveSpeed = (Math.random() * 10) / 3 + 1; // +1 to avoid super slow enemies.
 
 
     //************** GRID BASED MOTION ******************/
@@ -157,33 +173,13 @@ var Enemy = function(enemyNum) {
     // Return a random appropriate grid co-ord for starting.
     var randomYStartPos = function() {
 
-        var randomY = calcYPosition(2, this.spriteYOffset); // default
-
-        // Random start position
-        if (Math.random() < 0.33) {
-            randomY = 2;
-        } else if ( Math.random() > 0.66) {
-            randomY = 4;
-        } else {
-            randomY = 3;
-        }
+        // Generates a random number between 2 and 5.
+        var randomY = Math.round(Math.random() * 10 / 3) + 2;
 
         return randomY
-}
-    // Ensures there is at least one enemy per line
-    switch (enemyNum) {
-        case 1:
-            this.boardYPos = 2;
-            break;
-        case 2:
-            this.boardYPos = 3;
-            break;
-        case 3:
-            this.boardYPos = 4;
-            break;
-        default:
-            this.boardYPos = randomYStartPos();
     }
+    // Set random start position.
+    this.boardYPos = randomYStartPos();
 }
 
 // Update the enemy's position, required method for game
@@ -248,11 +244,6 @@ Player.prototype.update = function(dt) {
 
     // Update player position
     updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos);
-
-    if (this.boardYPos == 1) { // reached water. Reset
-        console.log("you escaped");
-        reset(this.playerName);
-    }
 }
 
 Player.prototype.render = function() {
@@ -287,13 +278,40 @@ Player.prototype.handleInput = function(keyPress) {
 var allEnemies = [];
 
 // Add enemies. Amount added based on difficulty
-for (var i = 1; i <= difficulties[difficulty].enemies; i++ ) {
+var createEnemies = function() {
+    console.log("createEnemies fired");
+    level = level + 1;
+    // Generates less and less enemies as the level goes up
+    // (1/level = 0.1->1) * (random*10/2 = 0->5) * (enemyMultiplier = 1 -> 1.5) + 1.
+    var numToGenerate = Math.round(1/level * (Math.random()*10/2) * difficulties[difficulty].enemyMultipler + 1); // always generate atleast 1
+
+    for (var i = 1; i <= numToGenerate; i++ ) {
+        numOfEnemies = numOfEnemies + 1;
+        var newEnemy = new Enemy(numOfEnemies);
+        allEnemies.push(newEnemy);  
+    }
+}
+
+function levelTimer() {
+    var timer = difficulties[difficulty].levelSpeed * 1000 / 2;
+    window.setInterval(createEnemies, timer);
+}
+
+//************ LEVEL TIMER TURNED OFF**********************///
+//************ LEVEL TIMER TURNED OFF**********************///
+//levelTimer();
+//************ LEVEL TIMER TURNED OFF**********************///
+//************ LEVEL TIMER TURNED OFF**********************///
+
+for (var i = 1; i <= 3; i++ ) {
     var newEnemy = new Enemy(i);
+    numOfEnemies = numOfEnemies + 1;
     allEnemies.push(newEnemy);
     
 }
 
 var player = new Player();
+var gem = new Gem();
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
