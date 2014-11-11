@@ -1,7 +1,8 @@
---- Time stuff ---
+--- Time and math stuff ---
 https://stackoverflow.com/questions/10659523/how-to-get-the-exact-local-time-of-client
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
 https://stackoverflow.com/questions/11832914/round-to-at-most-2-decimal-places-in-javascript
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
 
 --- Loops ---
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for

@@ -23,15 +23,15 @@ var gameBoard = {
 var difficulties = {
     "easy" : {
         "moveSpeed" : 1,
-        "enemies" : 3
+        "enemies" : 8
     },
     "medium" : {
         "moveSpeed" : 0.25,
-        "enemies" : 3
+        "enemies" : 16
     },
     "hard" : {
         "moveSpeed" : 1,
-        "enemies" : 5
+        "enemies" : 24
     }
 }
 
@@ -65,6 +65,11 @@ var calcXPosition = function(xpos, xOffset) {
     return xpos * gameBoard.stats.blockSizeX  - xOffset;
 }
 
+// Turns X pixels into grid co-ords
+var calcXPosPixelsToGrid = function(xposPixels, xOffset) {
+    return Math.round((xposPixels + xOffset) / gameBoard.stats.blockSizeX);
+}
+
 // Updates enemiesPos object
 var updateEnemyPos = function(name, xpos, ypos) {
     enemiesPos[name].x = xpos;
@@ -79,19 +84,35 @@ var updatePlayerPos = function(name, xpos, ypos) {
     playersPos[name].xy = xpos + '' + ypos;
 }
 
-var death =  function() {
+var reset =  function(playerNum) {
     console.log("You are dead. The game has reset.");
+    
+    // Update location in object model so reset event doesn't fire over and over
+    // while delay is occuring.
+    updatePlayerPos(playerNum, 3, 6);
+
+    // Delay visual / actual movement
+    window.setTimeout(function() {
+        // Reset position
+        player.boardXPos = 3;
+        player.boardYPos = 6;
+    }, 200);
+    
+    
 }
 
 var checkCollisions = function() {
     // Check for enemy collision
-    for (var enemy in enemiesPos) {
-        for (var player in playersPos) {
-            if (enemiesPos[enemy].xy == playersPos[player].xy) {
-                death();
+    for (var player in playersPos) { // check for all players
+        if (playersPos['player1'].y < 5) { //  If isn't on road. Dont check
+            for (var enemy in enemiesPos) { // check for enemies
+                if (enemiesPos[enemy].x == playersPos[player].x && enemiesPos[enemy].y == playersPos[player].y) { // do they have the same xy position
+                    reset(player);
+                }
             }
         }
-    } 
+    }
+
 }
 
 
@@ -108,10 +129,23 @@ var Enemy = function(enemyNum) {
     this.spriteYOffset = 110; // Offset because of image size.
     this.spriteXOffset = 101; // Just in case.
     
+    // Creates object name
+    this.enemyName = "enemy" + enemyNum;
+    
+    // Hide offscreen
+    this.x = -100;
+    this.y = -100;
+
+    // Create random start time between 0 and 20 seconds
+    this.startTime = (Math.random() * 100) / 4 - 5; // calcs 0 to 25 then minus 5. This makes bias toward starting early.
+    //this.startTime = 1;
+    // Make random movespeed
+    this.moveSpeed = (Math.random() * 10) / 2 + 1; // +1 to avoid super slow enemies.
+
+
+    //************** GRID BASED MOTION ******************/
     this.boardYPos = 0;
     this.boardXPos = 0;
-
-    this.enemyName = "enemy" + enemyNum;
 
     // Create enemy position objects
     enemiesPos[this.enemyName] = {
@@ -121,22 +155,22 @@ var Enemy = function(enemyNum) {
         }
 
     // Return a random appropriate grid co-ord for starting.
-    var randomXStartPos = function() {
+    var randomYStartPos = function() {
 
-        var randomX = calcYPosition(2, this.spriteYOffset); // default
+        var randomY = calcYPosition(2, this.spriteYOffset); // default
 
         // Random start position
         if (Math.random() < 0.33) {
-            randomX = 2;
+            randomY = 2;
         } else if ( Math.random() > 0.66) {
-            randomX = 4;
+            randomY = 4;
         } else {
-            randomX = 3;
+            randomY = 3;
         }
 
-        return randomX
+        return randomY
 }
-    // If only 3 enemies then make one on each line. Else randomly position.
+    // Ensures there is at least one enemy per line
     switch (enemyNum) {
         case 1:
             this.boardYPos = 2;
@@ -148,14 +182,8 @@ var Enemy = function(enemyNum) {
             this.boardYPos = 4;
             break;
         default:
-            this.boardYPos = randomXStartPos();
+            this.boardYPos = randomYStartPos();
     }
-    
-    // Makes enimies appear randomly in the first 6seconds of the game
-    this.enterTime = Math.random() * 10 - 4; 
-    
-    // Makes the first move exactly 1 second after enemy enters.
-    this.nextMove = this.enterTime + 1;
 }
 
 // Update the enemy's position, required method for game
@@ -165,30 +193,29 @@ Enemy.prototype.update = function(dt) {
     // which will ensure the game runs at the same speed for
     // all computers.
     
-    // Runs 60 times a second
-    // check if it should make a new move for the enemy.
-    if (gameTime > this.nextMove) {
+    /*************** SMOOTH MOTION ***********************/
+    // X movement for enemies is based on pixels. It is converted
+    // to grids for interactions with charcter and objects.
+    
+    // Start time
+    if (gameTime >  this.startTime) {
+        this.x = this.x + this.moveSpeed;
         
-        // Time is a random number be 0 and 1 second + the difficulty setting speed.
-        var timeToNextMove = this.nextMove + difficulties[difficulty].moveSpeed + Math.random();
-        this.nextMove = timeToNextMove;
-        
-        // Move 1 to the right
-        this.boardXPos = this.boardXPos + 1;
-        
-        // If enemy moved off the screen set it back to starting point.
-        if (this.boardXPos > 5) {
-            this.boardXPos = 0  
+        if (this.x > -50 && this.x < 500) { // Check if onscreen
+            // Check for collision
+            this.boardXPos = calcXPosPixelsToGrid(this.x, this.spriteXOffset);
+            updateEnemyPos(this.enemyName, this.boardXPos, this.boardYPos); 
+        } else if (this.x > 500) {
+            this.boardXPos = 0; // Reset board position
+            updateEnemyPos(this.enemyName, this.boardXPos, this.boardYPos); 
+            this.x = -1 * Math.random() * 1000; // Move offscreen random amount
         }
-
-        // Update enemy location after moving.
-        updateEnemyPos(this.enemyName, this.boardXPos, this.boardYPos);  
     }
 }
 
 // Draw the enemy on the screen, required method for game
 Enemy.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), calcXPosition(this.boardXPos, this.spriteXOffset), calcYPosition(this.boardYPos, this.spriteYOffset));
+    ctx.drawImage(Resources.get(this.sprite), this.x, calcYPosition(this.boardYPos, this.spriteYOffset));
 }
 
 // Now write your own player class
@@ -221,6 +248,11 @@ Player.prototype.update = function(dt) {
 
     // Update player position
     updatePlayerPos(this.playerName, this.boardXPos, this.boardYPos);
+
+    if (this.boardYPos == 1) { // reached water. Reset
+        console.log("you escaped");
+        reset(this.playerName);
+    }
 }
 
 Player.prototype.render = function() {
@@ -257,7 +289,6 @@ var allEnemies = [];
 // Add enemies. Amount added based on difficulty
 for (var i = 1; i <= difficulties[difficulty].enemies; i++ ) {
     var newEnemy = new Enemy(i);
-    
     allEnemies.push(newEnemy);
     
 }
