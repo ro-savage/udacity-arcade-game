@@ -1,20 +1,48 @@
-/***** Global Vars ****/
+window.localStorage.clear();
+
+// IFFE
+(function () {
+	//Let the user select their options
+	var select1p = document.getElementById('1p');
+	var select2p = document.getElementById('2p');
+
+	select1p.addEventListener('click', function() {
+		userConfig.players = 1;
+	});
+
+	select2p.addEventListener('click', function() {
+		userConfig.players = 2;
+	});
+})();
+
+var gameConfig = (function (that) {
+	that.lives = 1;
+	return that;
+})(gameConfig || {});
+
 var storage = window.localStorage;
 
-var startTime = Math.floor(Date.now() / 10) / 60;
-var gameTime = 0;
-var level = 1;
-var numOfEnemies = 0;
-var nextGemCreateTime = 0;
-var gameOverFlag = false;
+var autoconfig = {
+		startTime: Math.floor(Date.now() / 10) / 60,
+		gameTime: 0,
+		level: 1,
+		numOfEnemies: 0,
+		nextGemCreateTime: 0,
+		gameOverFlag: false,
+		allEnemies: [],
+		allGems: [],
+		reset: function() {
+			this.startTime = Math.floor(Date.now() / 10) / 60,
+			this.gameTime = 0,
+			this.level = 1,
+			this.numOfEnemies = 0,
+			this.nextGemCreateTime = 0,
+			this.gameOverFlag = false,
+			this.allEnemies = [],
+			this.allGems = []
+		}
 
-var allEnemies = [];
-var allGems = [];
-
-
-var topGui = document.getElementById('topGui');
-var bottomGui = document.getElementById('bottomGui');
-
+};
 
 var localGameData = {};
 
@@ -30,6 +58,10 @@ if (!storage.collectAndDodge) {
 };
 
 var scores = {};
+
+scores.clear = function() {
+	storage.collectAndDodge.clear();
+}
 
 scores.save = function() {
     storage.collectAndDodge = JSON.stringify(localGameData);
@@ -63,13 +95,9 @@ scores.addScores = function(name, score) {
     console.log("score added");
 }
 
-
-var tempscore = 2200;
-var tempname = "Player1";
-
 scores.getName = function(whichPlayer) {
 	document.getElementById('enterName').style.display = "block";  
-    document.getElementById('enterName').style.display = "visible";
+    //document.getElementById('enterName').style.display = "visible";
     
     var submit = document.getElementById('highScoreFormSubmit');
     
@@ -82,8 +110,6 @@ scores.getName = function(whichPlayer) {
     }
     
     var saveScore = function() {
-        
-        console.log("Save listener fired! " + whichPlayer);
         
         if (whichPlayer == 'p1') {
             player1.playerName = document.getElementById('p1-name').value;
@@ -113,8 +139,10 @@ scores.check = function() {
     var lowestScore = localGameData.highScoresList.length - 1;
     var minHighScore = localGameData.highScoresList[lowestScore].score;
     
-    if (localGameData.highScoresList.length < 5) {
+    if (localGameData.highScoresList.length < 5 && userConfig.players == 2) {
         scores.getName('both');
+    } else if (localGameData.highScoresList.length < 5) {
+    	scores.getName('p1');
     } else if (player1.score > minHighScore && player2.score > minHighScore) { 
         scores.getName('both');
     } else if (player1.score > minHighScore) {
@@ -169,25 +197,11 @@ var userConfig = {
     'difficulty' : 'medium'
 }
 
-var gameConfig = {
-    'lives' : 1
-}
 
-// Select number of players
-var select1p = document.getElementById('1p');
-var select2p = document.getElementById('2p');
-
-select1p.addEventListener('click', function() {
-	userConfig.players = 1;
-});
-
-select2p.addEventListener('click', function() {
-	userConfig.players = 2;
-});
 
 var gameTimeCounter = function() {
     // Game time is tracked in ss.msms
-    gameTime = Math.floor(Date.now() / 10 / 60 - startTime);
+    autoconfig.gameTime = Math.floor(Date.now() / 10 / 60 - autoconfig.startTime);
 }
 
 // Used for displaying GUI objects.
@@ -219,7 +233,7 @@ gui.playerInfoDisplay = function() {
 gui.levelDisplay = function() {
     ctx.clearRect(0, 0, 200, 30); // clears after each refresh
     ctx.font = "30px Verdana";
-    ctx.fillText('Level: ' + level, 0, 30);
+    ctx.fillText('Level: ' + autoconfig.level, 0, 30);
 }
 
 gui.timeDisplay = function() {
@@ -227,7 +241,7 @@ gui.timeDisplay = function() {
     ctx.textAlign = 'right';
     ctx.clearRect(300, 0, 250, 30); // clears after each refresh
     ctx.font = "30px Verdana";
-    ctx.fillText('Time: ' + gameTime +'s', 500, 30);
+    ctx.fillText('Time: ' + autoconfig.gameTime +'s', 500, 30);
     ctx.textAlign = 'left';
 }
 
@@ -317,7 +331,7 @@ var calcXPosPixelsToGrid = function(xposPixels, xOffset) {
 
 var gameOver = function(playerName) {
     
-    if (gameOverFlag == false) {
+    if (autoconfig.gameOverFlag == false) {
         if (userConfig.players == 2){ // if playing 2 players
             if (playerName == 'player2'){
                 player2.remove();
@@ -326,12 +340,12 @@ var gameOver = function(playerName) {
             }
 
             if (player1.gameOver == true && player2.gameOver == true) {
-                gameOverFlag = true;
+                autoconfig.gameOverFlag = true;
             }
 
         } else { // if playing one player just end the game
             player1.remove();
-            gameOverFlag = true;
+            autoconfig.gameOverFlag = true;
             scores.check();
         }
     }
@@ -410,7 +424,6 @@ var Enemy = function(enemyNum) {
 
     // Create random start time between 0 and 20 seconds
     this.startTime = (Math.random() * 10) - 2; // Make enemies appear within 8 seconds of being created. -2 to make bias toward fast.
-    //this.startTime = 1;
     // Make random movespeed
     this.moveSpeed = (Math.random() * 10) / 3 + 1; // +1 to avoid super slow enemies.
 
@@ -436,7 +449,7 @@ Enemy.prototype.update = function() {
     // to grids for interactions with charcter and objects.
     
     // Start time
-    if (gameTime >  this.startTime) {
+    if (autoconfig.gameTime >  this.startTime) {
         this.x = this.x + this.moveSpeed;
         
         if (this.x > -50 && this.x < 500) { // Check if onscreen
@@ -535,8 +548,8 @@ Player.prototype.death = function() {
         if (player.lives < 1) {
             player.gameOver = true;
             player.alive = false;
-            player.gameOverTime = gameTime;
-            player.gameOverLevel = level;
+            player.gameOverTime = autoconfig.gameTime;
+            player.gameOverLevel = autoconfig.level;
             gameOver(player.playerName);
         }
     }, 100);
@@ -582,15 +595,15 @@ Player.prototype.handleInput = function(keyPress) {
 
 // Add enemies. Amount added based on difficulty
 var createEnemies = function() {
-    level = level + 1;
+    autoconfig.level = autoconfig.level + 1;
     // Generates less and less enemies as the level goes up
     // (1/level = 0.1->1) * (random*10/2 = 0->5) * (enemyMultiplier = 1 -> 1.5) + 1.
-    var numToGenerate = Math.round(1/level * (Math.random()*10/2) * difficulties[userConfig.difficulty].enemyMultipler + 1); // always generate atleast 1
+    var numToGenerate = Math.round(1/autoconfig.level * (Math.random()*10/2) * difficulties[userConfig.difficulty].enemyMultipler + 1); // always generate atleast 1
 
     for (var i = 1; i <= numToGenerate; i++ ) {
-        numOfEnemies = numOfEnemies + 1;
-        var newEnemy = new Enemy(numOfEnemies);
-        allEnemies.push(newEnemy);  
+        autoconfig.numOfEnemies = autoconfig.numOfEnemies + 1;
+        var newEnemy = new Enemy(autoconfig.numOfEnemies);
+        autoconfig.allEnemies.push(newEnemy);  
     }
 }
 
@@ -603,8 +616,8 @@ levelTimer();
 
 for (var i = 1; i <= 3; i++ ) {
     var newEnemy = new Enemy(i);
-    numOfEnemies = numOfEnemies + 1;
-    allEnemies.push(newEnemy);
+    autoconfig.numOfEnemies = autoconfig.numOfEnemies + 1;
+    autoconfig.allEnemies.push(newEnemy);
 }
 
 var player1 = new Player(1);
@@ -612,11 +625,11 @@ var player2 = new Player(2);
 
 
 var createGems = function() {
-    if (Math.floor(gameTime) > nextGemCreateTime ) {
-        var numberOfGems = allGems.length
+    if (Math.floor(autoconfig.gameTime) > autoconfig.nextGemCreateTime ) {
+        var numberOfGems = autoconfig.allGems.length
         var gem = new Gem(numberOfGems+1);
-        allGems.push(gem);
-        nextGemCreateTime =  Math.floor(gameTime) + Math.round((Math.random() * 10) / 2); 
+        autoconfig.allGems.push(gem);
+        autoconfig.nextGemCreateTime =  Math.floor(autoconfig.gameTime) + Math.round((Math.random() * 10) / 2); 
     }
 }
 

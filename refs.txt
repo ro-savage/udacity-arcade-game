@@ -13,6 +13,7 @@ https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/swi
 https://stackoverflow.com/questions/6503193/nested-json-how-to-add-push-new-items-to-an-object
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in
 http://davidwalsh.name/array-sort
+https://stackoverflow.com/questions/8440357/how-to-reset-this-js-object
 
 --- Random ---
 https://stackoverflow.com/questions/7102704/how-to-use-variables-in-dot-notation-like-square-bracket-notation

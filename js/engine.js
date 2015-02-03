@@ -70,7 +70,6 @@ var Engine = (function(global) {
      * game loop.
      */
     function init() {
-        console.log('init() fired')
         reset();
         lastTime = Date.now();
         main();
@@ -99,11 +98,11 @@ var Engine = (function(global) {
      */
     function updateEntities() {
 
-        allGems.forEach(function(gem) {
+        autoconfig.allGems.forEach(function(gem) {
             gem.collisionDetection();
         });
 
-        allEnemies.forEach(function(enemy) {
+        autoconfig.allEnemies.forEach(function(enemy) {
             enemy.update();
         });
 
@@ -168,18 +167,18 @@ var Engine = (function(global) {
          * the render function you have defined.
          */
 
-        allGems.forEach(function(gem) {
+        autoconfig.allGems.forEach(function(gem) {
             gem.render();
         });
 
-        allEnemies.forEach(function(enemy) {
+        autoconfig.allEnemies.forEach(function(enemy) {
             enemy.render();
         });
 
         player1.render();
         if (userConfig.players == 2) {player2.render();}
 
-        if (gameOverFlag == true) {
+        if (autoconfig.gameOverFlag == true) {
             gui.gameOverDisplay();
         }
     }
@@ -189,18 +188,21 @@ var Engine = (function(global) {
      * those sorts of things. It's only called once by the init() method.
      */
     function reset() {
-        // noop
-        console.log('reset fired');
-        startTime = Math.floor(Date.now() / 10) / 60;
-        level = 1;
-        allEnemies = [];
-        allGems = [];
-        numOfEnemies = 0;
-        nextGemCreateTime = 0;
-        gameOverFlag = false;
+
+        autoconfig.reset();
+
+        /*
+        autoconfig.startTime = Math.floor(Date.now() / 10) / 60;
+        autoconfig.level = 1;
+        autoconfig.allEnemies = [];
+        autoconfig.allGems = [];
+        autoconfig.numOfEnemies = 0;
+        autoconfig.nextGemCreateTime = 0;
+        autoconfig.gameOverFlag = false;
+        */
         
         if (player1) { player1.score = 0; player1.gameOver = false; };
-        if (player2) { player2.score = 0; };
+        if (player2) { player2.score = 0; player2.gameOver = false; };
     }
 
     function ready() {
