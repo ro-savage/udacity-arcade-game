@@ -46,13 +46,7 @@ var Engine = (function(global) {
         /* Call our update/render/timer functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
-        update();
-        render()
-        gameTimeCounter();
-        gui.timeDisplay();
-        gui.levelDisplay();
-        gui.playerInfoDisplay();
-
+        render();
 
         /* Set our lastTime variable which is used to determine the time delta
          * for the next time this function is called.
@@ -85,8 +79,7 @@ var Engine = (function(global) {
      * on the entities themselves within your app.js file).
      */
     function update() {
-        updateEntities();
-        createGems();
+        // Does nothing
     }
 
     /* This is called by the update function  and loops through all of the
@@ -97,18 +90,8 @@ var Engine = (function(global) {
      * render methods.
      */
     function updateEntities() {
+        // DOES NOTHING
 
-        autoconfig.allGems.forEach(function(gem) {
-            gem.collisionDetection();
-        });
-
-        autoconfig.allEnemies.forEach(function(enemy) {
-            enemy.update();
-        });
-
-        player1.update();
-
-        if (userConfig.players == 2) {player2.update();}
     }
 
     /* This function initially draws the "game level", it will then call
@@ -167,20 +150,9 @@ var Engine = (function(global) {
          * the render function you have defined.
          */
 
-        autoconfig.allGems.forEach(function(gem) {
-            gem.render();
-        });
-
-        autoconfig.allEnemies.forEach(function(enemy) {
-            enemy.render();
-        });
-
-        player1.render();
-        if (userConfig.players == 2) {player2.render();}
-
-        if (autoconfig.gameOverFlag == true) {
-            gui.gameOverDisplay();
-        }
+        // GETTING FROM APP.JS*******************************
+        game.renderCavnas();
+        // GETTING FROM APP.JS*******************************
     }
 
     /* This function does nothing but it could have been a good place to
@@ -189,20 +161,8 @@ var Engine = (function(global) {
      */
     function reset() {
 
-        autoconfig.reset();
-
-        /*
-        autoconfig.startTime = Math.floor(Date.now() / 10) / 60;
-        autoconfig.level = 1;
-        autoconfig.allEnemies = [];
-        autoconfig.allGems = [];
-        autoconfig.numOfEnemies = 0;
-        autoconfig.nextGemCreateTime = 0;
-        autoconfig.gameOverFlag = false;
-        */
-        
-        if (player1) { player1.score = 0; player1.gameOver = false; };
-        if (player2) { player2.score = 0; player2.gameOver = false; };
+        // GETTING FROM APP.JS*******************************
+        game.resetGame(); // Reset all the configs
     }
 
     function ready() {
