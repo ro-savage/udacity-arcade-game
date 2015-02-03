@@ -5,6 +5,39 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+	<div id="topGui"></div>
+	<div id="leftGui">
+		<h2>Welcome to <br>'Collect & Dodge'</h2>
+		<h3>Objective</h3>
+		<p>Your object is to collect as many gems as you can before you run out of lives. As the levels progess more and more bugs appear on screen.</p>
+		<div id="configDiv">
+            <h3>Configuation</h3>
+		    <p><strong id="1p"><a href="#">1 Player</a></strong> | <strong id="2p"><a href="#">2 Player</a></strong> (experimental)</p>
+            <p><strong id="play"><a href="#">Play!</a></strong></p>
+        </div>
+	</div>
+	<div id="rightGui">
+        <h2>Local Highscores</h2>
+        <ul id="highScores"></ul>
+        <p><a id="clearHighScore" href="#">Clear Highscores</a></p>
+    </div>
+	<div id="gamediv">
+        <div id="relativeHack">        
+            <div id="enterName">
+                <h2>Congraulations!<br>You got a high score!</h2>
+                <form id="highScoreForm">
+                    <div id="player1-name">
+                        <label for="p1-name">Player 1 name:</label>
+                        <input id="p1-name" type="text" name="player1-name"></div>
+                    <div id="player2-name">
+                        <label for="p2-name">Player 2 name:</label>
+                        <input id="p2-name" type="text" name="player2-name"></div>
+                    <input type="button" value="Save" id="highScoreFormSubmit">
+                </form>
+            </div> 
+        </div>   
+    </div>
+	<div id="bottomGui"></div>
     <script src="js/resources.js"></script>
     <script src="js/app.js"></script>
     <script src="js/engine.js"></script>

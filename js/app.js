@@ -1,4 +1,6 @@
 /***** Global Vars ****/
+var storage = window.localStorage;
+
 var startTime = Math.floor(Date.now() / 10) / 60;
 var gameTime = 0;
 var level = 1;
@@ -6,8 +8,128 @@ var numOfEnemies = 0;
 var nextGemCreateTime = 0;
 var gameOverFlag = false;
 
+var allEnemies = [];
+var allGems = [];
+
+
+var topGui = document.getElementById('topGui');
+var bottomGui = document.getElementById('bottomGui');
+
+
+var localGameData = {};
+
+// Make Rowan have the first high score!
+localGameData.highScoresList = [
+                      { "name" : "Rowan", "score" : 1000 }
+                  ];
+
+if (!storage.collectAndDodge) { 
+        storage.collectAndDodge = JSON.stringify(localGameData);
+    } else {
+        localGameData = JSON.parse(storage.collectAndDodge);
+};
+
+var scores = {};
+
+scores.save = function() {
+    storage.collectAndDodge = JSON.stringify(localGameData);
+}
+
+scores.display = function() {
+    
+    localGameData.highScoresList.sort(function(obj1, obj2) {
+        return obj2.score - obj1.score;
+    });   
+    
+    
+    if (localGameData.highScoresList.length > 5) {
+        for (var i = 5; i < localGameData.highScoresList.length; i = i ) {
+            localGameData.highScoresList.pop();
+            }
+    }
+    
+    var HSlistLI  = document.getElementById('highScores');
+    HSlistLI.innerHTML = "";
+    
+    for (var i = 0; i < localGameData.highScoresList.length; i++) {
+        HSlistLI.innerHTML += "<li>" + localGameData.highScoresList[i].name + ": " + localGameData.highScoresList[i].score + "</li>";
+    }
+    
+    scores.save();
+}
+
+scores.addScores = function(name, score) {
+    localGameData.highScoresList.push({"name" : name, "score" : score});
+    console.log("score added");
+}
+
+
+var tempscore = 2200;
+var tempname = "Player1";
+
+scores.getName = function(whichPlayer) {
+	document.getElementById('enterName').style.display = "block";  
+    document.getElementById('enterName').style.display = "visible";
+    
+    var submit = document.getElementById('highScoreFormSubmit');
+    
+    if (whichPlayer == 'p1') {
+        document.getElementById('player2-name').style.display = "none";  
+    } else if (whichPlayer == 'p2') {
+        document.getElementById('player1-name').style.display = "none"; 
+    } else if (whichPlayer == 'both') {
+        // Do nothing. Nothing to hide.
+    }
+    
+    var saveScore = function() {
+        
+        console.log("Save listener fired! " + whichPlayer);
+        
+        if (whichPlayer == 'p1') {
+            player1.playerName = document.getElementById('p1-name').value;
+            scores.addScores(player1.playerName, player1.score);
+        } else if (whichPlayer == 'p2') {
+            player2.playerName = document.getElementById('p2-name').value;
+            scores.addScores(player2.playerName, player2.score);
+        } else if (whichPlayer == 'both') {
+            player1.playerName = document.getElementById('p1-name').value;
+            player2.playerName = document.getElementById('p2-name').value;
+            scores.addScores(player1.playerName, player1.score);
+            scores.addScores(player2.playerName, player2.score);
+        }
+        
+        document.getElementById('enterName').style.display = "none";
+        
+        scores.display();
+        
+    }
+    
+    submit.addEventListener('click', saveScore, false);
+    
+}
+
+scores.check = function() {
+    
+    var lowestScore = localGameData.highScoresList.length - 1;
+    var minHighScore = localGameData.highScoresList[lowestScore].score;
+    
+    if (localGameData.highScoresList.length < 5) {
+        scores.getName('both');
+    } else if (player1.score > minHighScore && player2.score > minHighScore) { 
+        scores.getName('both');
+    } else if (player1.score > minHighScore) {
+    	scores.getName('p1');
+    } else if (player2.score > minHighScore) {
+    	scores.getName('p2');
+    }
+
+}
+
+scores.display();
+
+// Restarting game
 var resetGame = function() {
-    window.location.reload();
+    reset();
 }
 
 var gameBoard = {
@@ -50,6 +172,18 @@ var userConfig = {
 var gameConfig = {
     'lives' : 1
 }
+
+// Select number of players
+var select1p = document.getElementById('1p');
+var select2p = document.getElementById('2p');
+
+select1p.addEventListener('click', function() {
+	userConfig.players = 1;
+});
+
+select2p.addEventListener('click', function() {
+	userConfig.players = 2;
+});
 
 var gameTimeCounter = function() {
     // Game time is tracked in ss.msms
@@ -141,6 +275,7 @@ gui.gameOverDisplay = function() {
     ctx.fillStyle = 'green';
     ctx.font = "30px Verdana";
     ctx.fillText("Restart!", 190, 430);
+    ctx.fillStyle = 'black';
 
     // Restart button click capture
     var canvas = document.getElementById('canvas');
@@ -158,6 +293,7 @@ function listenResetButton(event) {
     console.log('X: ' + x + ' Y: ' + y);
     console.log(event.target.resetButton);
     var resetButton = event.target.resetButton;
+    console.log(resetButton.x1);
 
     if (x > resetButton.x1 && x < resetButton.x2 && y > resetButton.y1 && y < resetButton.y2) {
         resetGame();
@@ -181,21 +317,26 @@ var calcXPosPixelsToGrid = function(xposPixels, xOffset) {
 
 var gameOver = function(playerName) {
     
-    if (userConfig.players == 2){ // if playing 2 players
-        if (playerName == 'player2'){
-            player2.remove();
-        } else {
+    if (gameOverFlag == false) {
+        if (userConfig.players == 2){ // if playing 2 players
+            if (playerName == 'player2'){
+                player2.remove();
+            } else {
+                player1.remove();
+            }
+
+            if (player1.gameOver == true && player2.gameOver == true) {
+                gameOverFlag = true;
+            }
+
+        } else { // if playing one player just end the game
             player1.remove();
-        }
-
-        if (player1.gameOver == true && player2.gameOver == true) {
             gameOverFlag = true;
+            scores.check();
         }
-
-    } else { // if playing one player just end the game
-        player1.remove();
-        gameOverFlag = true;
     }
+    
+
 }
 
 var Gem = function(gemNum){
@@ -289,12 +430,7 @@ var Enemy = function(enemyNum) {
 }
 
 // Update the enemy's position, required method for game
-// Parameter: dt, a time delta between ticks
-Enemy.prototype.update = function(dt) {
-    // You should multiply any movement by the dt parameter
-    // which will ensure the game runs at the same speed for
-    // all computers.
-    
+Enemy.prototype.update = function() {   
     /*************** SMOOTH MOTION ***********************/
     // X movement for enemies is based on pixels. It is converted
     // to grids for interactions with charcter and objects.
@@ -374,11 +510,7 @@ var Player = function(playerNum) {
     this.gameOverLevel = 0;
 }
 
-Player.prototype.update = function(dt) {
-    // You should multiply any movement by the dt parameter
-    // which will ensure the game runs at the same speed for
-    // all computers.
-
+Player.prototype.update = function() {
     // Update player position
 }
 
@@ -421,31 +553,32 @@ Player.prototype.render = function() {
 }
 
 Player.prototype.handleInput = function(keyPress) {
-    // 2nd if statements makes sure you can not run off the board.
-    if (keyPress == 'up' || keyPress == 'w') {
-        if (this.boardYPos > 1){
-            this.boardYPos = this.boardYPos - 1;
-        }
-    } else if (keyPress == 'down' || keyPress == 's') {
-        if (this.boardYPos < gameBoard.settings.heightInBlocks) {
-           this.boardYPos = this.boardYPos + 1; 
-        }
-    } else if (keyPress == 'left' || keyPress == 'a') {
-        if (this.boardXPos > 1) {
-           this.boardXPos = this.boardXPos - 1;
-        }
-    } else if (keyPress == 'right' || keyPress == 'd') {
-        if (this.boardXPos < gameBoard.settings.widthInBlocks) {
-           this.boardXPos = this.boardXPos + 1;
-        }
-    }
+
+	if (this.gameOver == false) { // Check if he is dead.
+	    // 2nd if statements makes sure you can not run off the board.
+	    if (keyPress == 'up' || keyPress == 'w') {
+	        if (this.boardYPos > 1){
+	            this.boardYPos = this.boardYPos - 1;
+	        }
+	    } else if (keyPress == 'down' || keyPress == 's') {
+	        if (this.boardYPos < gameBoard.settings.heightInBlocks) {
+	           this.boardYPos = this.boardYPos + 1; 
+	        }
+	    } else if (keyPress == 'left' || keyPress == 'a') {
+	        if (this.boardXPos > 1) {
+	           this.boardXPos = this.boardXPos - 1;
+	        }
+	    } else if (keyPress == 'right' || keyPress == 'd') {
+	        if (this.boardXPos < gameBoard.settings.widthInBlocks) {
+	           this.boardXPos = this.boardXPos + 1;
+	        }
+	    }
+	}
 }
 
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
-
-var allEnemies = [];
 
 // Add enemies. Amount added based on difficulty
 var createEnemies = function() {
@@ -463,14 +596,10 @@ var createEnemies = function() {
 
 function levelTimer() {
     var timer = difficulties[userConfig.difficulty].levelSpeed * 1000 / 2;
-    window.setInterval(createEnemies, timer);
+    var levelTimeIntervale = window.setInterval(createEnemies, timer);
 }
 
-//************ LEVEL TIMER TURNED OFF**********************///
-//************ LEVEL TIMER TURNED OFF**********************///
 levelTimer();
-//************ LEVEL TIMER TURNED OFF**********************///
-//************ LEVEL TIMER TURNED OFF**********************///
 
 for (var i = 1; i <= 3; i++ ) {
     var newEnemy = new Enemy(i);
@@ -479,9 +608,8 @@ for (var i = 1; i <= 3; i++ ) {
 }
 
 var player1 = new Player(1);
-if (userConfig.players == 2) {var player2 = new Player(2);}
+var player2 = new Player(2);
 
-var allGems = [];
 
 var createGems = function() {
     if (Math.floor(gameTime) > nextGemCreateTime ) {
@@ -494,7 +622,6 @@ var createGems = function() {
 
 
 // This listens for key presses and sends the keys to your
-// Player.handleInput() method. You don't need to modify this.
 document.addEventListener('keyup', function(e) {
     var player1Keys = {
         37: 'left',

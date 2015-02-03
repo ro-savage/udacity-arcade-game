@@ -12,12 +12,25 @@ https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/swi
 --- Objects ---
 https://stackoverflow.com/questions/6503193/nested-json-how-to-add-push-new-items-to-an-object
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in
+http://davidwalsh.name/array-sort
 
 --- Random ---
 https://stackoverflow.com/questions/7102704/how-to-use-variables-in-dot-notation-like-square-bracket-notation
 http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
+https://developer.mozilla.org/en-US/docs/Web/API/EventTarget.addEventListener
 
 --- Canvas ---
 http://www.html5tutorial.info/html5-canvas-text.php
 https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_text
 https://stackoverflow.com/questions/2359537/how-to-change-the-opacity-alpha-transparency-of-an-element-in-a-canvas-elemen
+
+--- Clicking and canvas ---
+http://miloq.blogspot.co.nz/2011/05/coordinates-mouse-click-canvas.html
+https://stackoverflow.com/questions/256754/how-to-pass-arguments-to-addeventlistener-listener-function
+https://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element
+
+--- Local Stoage ---
+http://davidwalsh.name/html5-storage
+http://msdn.microsoft.com/en-us/library/hh781511(v=vs.85).aspx
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+https://stackoverflow.com/questions/13567509/what-happens-when-localstorage-is-full

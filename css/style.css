@@ -1,3 +1,53 @@
-body {
-    text-align: center;
+div {
+	border: 1px dotted black;
+}
+
+#gamediv {
+	width: 505px;
+	margin: auto;
+}
+
+#leftGui {
+	float: left;
+	height: 700px;
+	max-width: 300px;
+	padding: 0 20px 0 20px;
+}
+
+#rightGui {
+	float: right;
+	height: 700px;
+	max-width: 300px;
+	padding: 0 20px 0 20px;
+}
+
+#relativeHack {
+    /*  This exists because the offset for the canvas gets ruined if the canvas is contained
+        contained in a relative element. Therefore making a 0px element for highscore to be
+        relative too
+    */
+    position: relative;
+}
+
+#enterName {
+    position:absolute;
+    top: 200px;
+    left: 100px;
+    background: white;
+    border: 1px black solid;
+    width: 300px;
+    padding: 10px;
+    display: none;
+}
+
+#enterName h2 {
+    margin-top: 0;   
+}
+
+#highScoreForm input {
+    margin-top: 5px;
+}
+
+#highScoreFormSubmit {
+    margin-left: 130px;
 }

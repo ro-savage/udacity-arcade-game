@@ -28,7 +28,7 @@ var Engine = (function(global) {
     canvas.width = 505;
     canvas.height = 700;
     canvas.id = 'canvas';
-    doc.body.appendChild(canvas);
+    doc.getElementById('gamediv').appendChild(canvas);
 
     /* This function serves as the kickoff point for the game loop itself
      * and handles properly calling the update and render methods.
@@ -46,7 +46,7 @@ var Engine = (function(global) {
         /* Call our update/render/timer functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
-        update(dt);
+        update();
         render()
         gameTimeCounter();
         gui.timeDisplay();
@@ -70,6 +70,7 @@ var Engine = (function(global) {
      * game loop.
      */
     function init() {
+        console.log('init() fired')
         reset();
         lastTime = Date.now();
         main();
@@ -84,8 +85,8 @@ var Engine = (function(global) {
      * functionality this way (you could just implement collision detection
      * on the entities themselves within your app.js file).
      */
-    function update(dt) {
-        updateEntities(dt);
+    function update() {
+        updateEntities();
         createGems();
     }
 
@@ -96,16 +97,18 @@ var Engine = (function(global) {
      * the data/properties related to  the object. Do your drawing in your
      * render methods.
      */
-    function updateEntities(dt) {
+    function updateEntities() {
 
         allGems.forEach(function(gem) {
             gem.collisionDetection();
         });
 
         allEnemies.forEach(function(enemy) {
-            enemy.update(dt);
+            enemy.update();
         });
+
         player1.update();
+
         if (userConfig.players == 2) {player2.update();}
     }
 
@@ -187,6 +190,24 @@ var Engine = (function(global) {
      */
     function reset() {
         // noop
+        console.log('reset fired');
+        startTime = Math.floor(Date.now() / 10) / 60;
+        level = 1;
+        allEnemies = [];
+        allGems = [];
+        numOfEnemies = 0;
+        nextGemCreateTime = 0;
+        gameOverFlag = false;
+        
+        if (player1) { player1.score = 0; player1.gameOver = false; };
+        if (player2) { player2.score = 0; };
+    }
+
+    function ready() {
+        document.getElementById("play").onclick = function() {
+            init();
+            document.getElementById("configDiv").remove(); // Doesn't work in IE.
+        };
     }
 
     /* Go ahead and load all of the images we know we're going to need to
@@ -204,12 +225,13 @@ var Engine = (function(global) {
         'images/gem-orange.png',
         'images/gem-green.png'
     ]);
-    Resources.onReady(init);
+    Resources.onReady(ready);
 
     /* Assign the canvas' context object to the global variable (the window
      * object when run in a browser) so that developer's can use it more easily
      * from within their app.js files.
      */
     global.ctx = ctx;
-    //global.canvas = canvas; // didn't work??
+    global.init = init;
+    global.reset = reset;
 })(this);
