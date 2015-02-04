@@ -1,5 +1,21 @@
-div {
-	border: 1px dotted black;
+a:link {
+    color: blue;
+    text-decoration: none;
+}
+
+a:hover {
+    color: blue;
+    text-decoration: underline;
+}
+
+a:visited {
+    color: blue;
+    text-decoration: none;
+}
+
+a.selected {
+    text-decoration: underline;
+    font-weight: bold;
 }
 
 #gamediv {
@@ -50,4 +66,16 @@ div {
 
 #highScoreFormSubmit {
     margin-left: 130px;
+}
+
+#configDiv {
+    display: none;
+}
+
+#configDiv p {
+    text-align: center;
+}
+
+#play {
+    font-size: 2em;
 }

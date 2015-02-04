@@ -166,10 +166,8 @@ var Engine = (function(global) {
     }
 
     function ready() {
-        document.getElementById("play").onclick = function() {
-            init();
-            document.getElementById("configDiv").remove(); // Doesn't work in IE.
-        };
+        // GETTING FROM APP.JS*******************************
+        game.startGame(); // Hide loading and reveal config menu and start button
     }
 
     /* Go ahead and load all of the images we know we're going to need to
@@ -193,6 +191,7 @@ var Engine = (function(global) {
      * object when run in a browser) so that developer's can use it more easily
      * from within their app.js files.
      */
+
     global.ctx = ctx;
     global.init = init;
     global.reset = reset;

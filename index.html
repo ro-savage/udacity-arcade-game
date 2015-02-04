@@ -7,19 +7,28 @@
 <body>
 	<div id="topGui"></div>
 	<div id="leftGui">
-		<h2>Welcome to <br>'Collect & Dodge'</h2>
+		<h2>Welcome to <br>'Collect and Dodge'</h2>
 		<h3>Objective</h3>
 		<p>Your object is to collect as many gems as you can before you run out of lives. As the levels progess more and more bugs appear on screen.</p>
-		<div id="configDiv">
+		<div id="loadingDiv">
+            <p><strong>Game is loading. Please wait.</strong></p>
+        </div>
+        <div id="configDiv">
             <h3>Configuation</h3>
-		    <p><strong id="1p"><a href="#">1 Player</a></strong> | <strong id="2p"><a href="#">2 Player</a></strong> (experimental)</p>
+		    <p><a href="#" id="1p" class="selected">1 Player</a> | <a href="#" id="2p">2 Player</a></p>
+            <p><a href="#" id="easy" class="selected">Easy</a> | <a href="#" id="medium">Medium</a></strong> | <a href="#" id="hard">Hard</a></strong></p>
             <p><strong id="play"><a href="#">Play!</a></strong></p>
+        </div>
+        <div id="gameMode">
+            <h3>Game Mode</h3>
+            <p>You are playing <strong><span id="players">1 player</span></strong> on <strong><span id="difficulty">easy</span></strong> and each gem is worth <strong><span id="gempoints">100</span></strong> points.</p>
         </div>
 	</div>
 	<div id="rightGui">
         <h2>Local Highscores</h2>
+        <span>Single Player</span>
         <ul id="highScores"></ul>
-        <p><a id="clearHighScore" href="#">Clear Highscores</a></p>
+        <p><a id="clearHighScores" href="#">Clear Highscores</a></p>
     </div>
 	<div id="gamediv">
         <div id="relativeHack">        
